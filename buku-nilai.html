@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buku Pengantaran Resep Ruangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --paper:#FAF7F0;
+    --paper-alt:#F1EBDC;
+    --ink:#23281F;
+    --muted:#6B6558;
+    --line:#DCD5C3;
+    --primary:#2F6B52;
+    --primary-dark:#1F4A38;
+    --gold:#B08628;
+    --negative:#B5533C;
+    --white:#FFFFFF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+  }
+  .app{
+    max-width:920px;
+    margin:0 auto;
+    padding:32px 20px 64px;
+  }
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:28px;
+  }
+  header h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:28px;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  header .sub{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .year-picker{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .year-picker label{
+    font-size:13px;
+    color:var(--muted);
+  }
+  select, input[type=date], input[type=number], input[type=text]{
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:9px 12px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--white);
+    color:var(--ink);
+  }
+  select:focus, input:focus{
+    outline:2px solid var(--primary);
+    outline-offset:1px;
+  }
+  .year-picker select{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+  }
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px 22px;
+    margin-bottom:24px;
+  }
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    margin:0 0 16px;
+  }
+  form.entry-form{
+    display:grid;
+    grid-template-columns:150px 160px 1fr auto;
+    gap:12px;
+    align-items:end;
+  }
+  form.entry-form .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  form.entry-form label{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+  button{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    border:1px solid var(--primary);
+    background:var(--primary);
+    color:var(--white);
+    cursor:pointer;
+  }
+  button:hover{ background:var(--primary-dark); border-color:var(--primary-dark); }
+  button.ghost{
+    background:transparent;
+    color:var(--negative);
+    border:1px solid transparent;
+    padding:4px 8px;
+    font-weight:500;
+    font-size:12px;
+  }
+  button.ghost:hover{ background:#F6E9E5; }
+
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .stat{
+    background:var(--paper-alt);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .stat .label{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    margin-bottom:6px;
+  }
+  .stat .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    font-weight:500;
+  }
+
+  .tape{
+    display:flex;
+    gap:0;
+    overflow-x:auto;
+    border-top:1px dashed var(--line);
+    border-bottom:1px dashed var(--line);
+    padding:4px 0;
+  }
+  .tape-item{
+    flex:1 0 76px;
+    text-align:center;
+    padding:10px 6px;
+    border-right:1px dashed var(--line);
+    min-width:76px;
+    cursor:pointer;
+    border-radius:6px;
+    transition:background 0.12s;
+  }
+  .tape-item:hover{ background:var(--paper-alt); }
+  .tape-item:last-child{ border-right:none; }
+  .tape-item .month{
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:4px;
+  }
+  .tape-item .amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:500;
+  }
+  .tape-item .amount.zero{ color:var(--muted); }
+  .tape-item .amount.neg{ color:var(--negative); }
+
+  .chart-wrap{ position:relative; width:100%; height:260px; margin-top:18px; }
+
+  .month-group{ margin-bottom:18px; }
+  .month-group:last-child{ margin-bottom:0; }
+  .month-group h3{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:500;
+    color:var(--primary-dark);
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin:0 0 8px;
+  }
+  table.entries{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  table.entries td{
+    padding:7px 4px;
+    border-bottom:1px solid var(--paper-alt);
+    vertical-align:middle;
+  }
+  table.entries td.date{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--muted);
+    width:100px;
+    white-space:nowrap;
+  }
+  table.entries td.value{
+    font-family:'IBM Plex Mono', monospace;
+    text-align:right;
+    width:130px;
+    white-space:nowrap;
+  }
+  table.entries td.note{ color:var(--ink); }
+  table.entries td.action{ width:50px; text-align:right; }
+
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    padding:24px 0;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(35,40,31,0.45);
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 16px;
+    z-index:50;
+    overflow-y:auto;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background:var(--white);
+    border-radius:14px;
+    max-width:520px;
+    width:100%;
+    padding:22px 24px;
+    border:1px solid var(--line);
+  }
+  .modal-box .modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:1px solid var(--line);
+    padding-bottom:12px;
+    margin-bottom:14px;
+  }
+  .modal-box h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:18px;
+    margin:0 0 4px;
+  }
+  .modal-box .modal-sub{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .modal-box .modal-close{
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-size:20px;
+    line-height:1;
+    padding:2px 6px;
+    cursor:pointer;
+  }
+  .modal-box .modal-close:hover{ color:var(--ink); }
+  .modal-total{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:20px;
+    font-weight:500;
+    margin-bottom:14px;
+  }
+
+  @media (max-width:600px){
+    form.entry-form{ grid-template-columns:1fr; }
+    .stats-row{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div>
+      <h1>Buku Pengantaran Resep Ruangan</h1>
+      <div class="sub" id="subtitle">Laporan EKIN, direkap per bulan.</div>
+    </div>
+    <div class="year-picker">
+      <label for="yearSelect">Tahun</label>
+      <select id="yearSelect"></select>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Tambah entri</h2>
+    <form class="entry-form" id="entryForm">
+      <div class="field">
+        <label for="inputDate">Tanggal</label>
+        <input type="date" id="inputDate" required>
+      </div>
+      <div class="field">
+        <label for="inputValue">Nilai</label>
+        <input type="number" id="inputValue" step="any" placeholder="0" required>
+      </div>
+      <div class="field">
+        <label for="inputNote">Catatan (opsional)</label>
+        <input type="text" id="inputNote" placeholder="mis. penjualan harian">
+      </div>
+      <button type="submit">Tambah</button>
+    </form>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="label">Total tahun ini</div>
+      <div class="value" id="statTotal">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Rata-rata / bulan</div>
+      <div class="value" id="statAvg">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Jumlah entri</div>
+      <div class="value" id="statCount">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Rekap per bulan</h2>
+    <div class="tape" id="tape"></div>
+    <div class="chart-wrap">
+      <canvas id="monthChart" role="img" aria-label="Grafik total nilai per bulan untuk tahun terpilih"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Riwayat</h2>
+    <div id="history"></div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="monthModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalTitle">Bulan</h3>
+        <div class="modal-sub">Laporan harian</div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-total" id="modalTotal">0</div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const STORAGE_KEY = 'buku-nilai-entries';
+let entries = [];
+let chartInstance = null;
+
+function idify(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function formatNumber(n){
+  return Number(n).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+}
+
+async function loadEntries(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    entries = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    entries = [];
+  }
+}
+
+async function saveEntries(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(entries), false);
+  }catch(e){
+    console.error('Gagal menyimpan data', e);
+  }
+}
+
+function getYears(){
+  const currentYear = new Date().getFullYear();
+  const years = new Set(entries.map(e => new Date(e.date).getFullYear()));
+  years.add(currentYear);
+  return Array.from(years).sort((a,b) => b - a);
+}
+
+function populateYearSelect(selected){
+  const sel = document.getElementById('yearSelect');
+  const years = getYears();
+  sel.innerHTML = '';
+  years.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function getSelectedYear(){
+  return parseInt(document.getElementById('yearSelect').value, 10);
+}
+
+function entriesForYear(year){
+  return entries.filter(e => new Date(e.date).getFullYear() === year);
+}
+
+function monthlyTotals(year){
+  const totals = new Array(12).fill(0);
+  entriesForYear(year).forEach(e => {
+    const m = new Date(e.date).getMonth();
+    totals[m] += Number(e.value);
+  });
+  return totals;
+}
+
+function renderStats(year){
+  const yearEntries = entriesForYear(year);
+  const total = yearEntries.reduce((s, e) => s + Number(e.value), 0);
+  const monthsWithData = new Set(yearEntries.map(e => new Date(e.date).getMonth())).size || 1;
+  document.getElementById('statTotal').textContent = formatNumber(total);
+  document.getElementById('statAvg').textContent = formatNumber(total / monthsWithData);
+  document.getElementById('statCount').textContent = yearEntries.length;
+}
+
+function renderTape(year){
+  const totals = monthlyTotals(year);
+  const tape = document.getElementById('tape');
+  tape.innerHTML = '';
+  totals.forEach((val, i) => {
+    const item = document.createElement('div');
+    item.className = 'tape-item';
+    const cls = val === 0 ? 'zero' : (val < 0 ? 'neg' : '');
+    item.innerHTML = `<div class="month">${MONTH_NAMES[i]}</div><div class="amount ${cls}">${formatNumber(val)}</div>`;
+    item.addEventListener('click', () => openMonthReport(i));
+    tape.appendChild(item);
+  });
+}
+
+function renderChart(year){
+  const totals = monthlyTotals(year);
+  const ctx = document.getElementById('monthChart');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTH_NAMES,
+      datasets: [{
+        label: 'Total per bulan',
+        data: totals,
+        backgroundColor: '#2F6B52',
+        borderRadius: 4,
+        maxBarThickness: 28
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => formatNumber(v) } },
+        x: { grid: { display: false } }
+      },
+      onClick: (evt, elements) => {
+        if (elements.length > 0) openMonthReport(elements[0].index);
+      },
+      onHover: (evt, elements) => {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+      }
+    }
+  });
+}
+
+function openMonthReport(monthIndex){
+  const year = getSelectedYear();
+  const list = entriesForYear(year)
+    .filter(e => new Date(e.date).getMonth() === monthIndex)
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+  const total = list.reduce((s, e) => s + Number(e.value), 0);
+
+  document.getElementById('modalTitle').textContent = `${MONTH_NAMES[monthIndex]} ${year}`;
+  document.getElementById('modalTotal').textContent = formatNumber(total);
+
+  const body = document.getElementById('modalBody');
+  if (list.length === 0){
+    body.innerHTML = '<div class="empty">Belum ada entri pada bulan ini.</div>';
+  } else {
+    const rows = list.map(e => `
+      <tr>
+        <td class="date">${e.date}</td>
+        <td class="value">${formatNumber(e.value)}</td>
+        <td class="note">${e.note ? escapeHtml(e.note) : ''}</td>
+      </tr>`).join('');
+    body.innerHTML = `<table class="entries"><tbody>${rows}</tbody></table>`;
+  }
+  document.getElementById('monthModal').classList.add('open');
+}
+
+function closeMonthReport(){
+  document.getElementById('monthModal').classList.remove('open');
+}
+window.openMonthReport = openMonthReport;
+
+function renderHistory(year){
+  const container = document.getElementById('history');
+  const yearEntries = entriesForYear(year).sort((a,b) => new Date(b.date) - new Date(a.date));
+  if (yearEntries.length === 0){
+    container.innerHTML = '<div class="empty">Belum ada entri untuk tahun ini.</div>';
+    return;
+  }
+  const byMonth = {};
+  yearEntries.forEach(e => {
+    const m = new Date(e.date).getMonth();
+    if (!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(e);
+  });
+  const monthKeys = Object.keys(byMonth).sort((a,b) => b - a);
+  container.innerHTML = monthKeys.map(m => {
+    const list = byMonth[m];
+    const subtotal = list.reduce((s, e) => s + Number(e.value), 0);
+    const rows = list.map(e => `
+      <tr data-id="${e.id}">
+        <td class="date">${e.date}</td>
+        <td class="value">${formatNumber(e.value)}</td>
+        <td class="note">${e.note ? escapeHtml(e.note) : ''}</td>
+        <td class="action"><button class="ghost" onclick="deleteEntry('${e.id}')">Hapus</button></td>
+      </tr>`).join('');
+    return `
+      <div class="month-group">
+        <h3><span>${MONTH_NAMES[m]} ${year}</span><span>${formatNumber(subtotal)}</span></h3>
+        <table class="entries"><tbody>${rows}</tbody></table>
+      </div>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderAll(){
+  const year = getSelectedYear();
+  renderStats(year);
+  renderTape(year);
+  renderChart(year);
+  renderHistory(year);
+}
+
+async function deleteEntry(id){
+  entries = entries.filter(e => e.id !== id);
+  await saveEntries();
+  populateYearSelect(getSelectedYear());
+  renderAll();
+}
+window.deleteEntry = deleteEntry;
+
+document.getElementById('yearSelect').addEventListener('change', renderAll);
+
+document.getElementById('modalClose').addEventListener('click', closeMonthReport);
+document.getElementById('monthModal').addEventListener('click', (ev) => {
+  if (ev.target.id === 'monthModal') closeMonthReport();
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') closeMonthReport();
+});
+
+document.getElementById('entryForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const date = document.getElementById('inputDate').value;
+  const value = document.getElementById('inputValue').value;
+  const note = document.getElementById('inputNote').value.trim();
+  if (!date || value === '') return;
+  entries.push({ id: idify(), date, value: Number(value), note });
+  await saveEntries();
+  document.getElementById('inputValue').value = '';
+  document.getElementById('inputNote').value = '';
+  const enteredYear = new Date(date).getFullYear();
+  populateYearSelect(enteredYear);
+  document.getElementById('yearSelect').value = enteredYear;
+  renderAll();
+});
+
+(async function init(){
+  await loadEntries();
+  const today = new Date();
+  document.getElementById('inputDate').value = today.toISOString().slice(0,10);
+  populateYearSelect(today.getFullYear());
+  renderAll();
+})();
+</script>
+</body>
+</html>
